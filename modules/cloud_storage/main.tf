@@ -1,5 +1,11 @@
+resource "random_string" "random" {
+  length  = 5
+  special = false
+  upper   = false
+}
+
 resource "google_storage_bucket" "bucket" {
-  name     = var.bucket_name
+  name     = "${var.bucket_name}-${random_string.random.result}"
   location = var.bucket_location
 
   uniform_bucket_level_access = true
@@ -15,7 +21,7 @@ resource "google_storage_bucket_iam_member" "bucket_iam" {
 }
 
 resource "google_storage_bucket_object" "object" {
-  name   = var.object_name
+  name   = "${var.object_name}-${random_string.random.result}"
   source = var.object_location
   bucket = google_storage_bucket.bucket.name
 }

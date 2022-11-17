@@ -1,5 +1,11 @@
+resource "random_string" "random" {
+  length  = 5
+  special = false
+  upper   = false
+}
+
 resource "google_sql_database_instance" "sql_instance" {
-  name             = var.sql_name
+  name             = "cloud-sql-${random_string.random.result}"
   database_version = var.sql_version
   region           = var.sql_region
 
