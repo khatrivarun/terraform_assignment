@@ -72,7 +72,7 @@ data "archive_file" "source" {
 }
 
 resource "google_storage_bucket" "upload_bucket" {
-  name                        = "upload-22878"
+  name                        = "upload"
   location                    = "US"
   uniform_bucket_level_access = true
   force_destroy               = true
@@ -81,7 +81,7 @@ resource "google_storage_bucket" "upload_bucket" {
 
 module "code_bucket" {
   source          = "./modules/cloud_storage"
-  bucket_name     = "cloud-function-code-22878"
+  bucket_name     = "cloud-function-code"
   bucket_location = "US"
   object_name     = "function.zip"
   object_location = data.archive_file.source.output_path
@@ -93,7 +93,7 @@ module "code_bucket" {
 }
 
 resource "google_cloudfunctions_function" "function" {
-  name    = "upload-trigger-22878"
+  name    = "upload-trigger"
   runtime = "python37"
 
   source_archive_bucket = module.code_bucket.bucket_name
