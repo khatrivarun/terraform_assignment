@@ -4,27 +4,13 @@ resource "random_string" "random" {
   upper   = false
 }
 
-resource "google_compute_backend_service" "default" {
-  name        = "backend-service-${random_string.random.result}"
-  port_name   = "http"
-  protocol    = "HTTP"
-  timeout_sec = 10
-
-  health_checks = [var.health_check_id]
-
-  backend {
-    group = var.instance_group
-  }
+resource "google_compute_global_address" "address" {
+  name = "gcs-address-${random_string.random.result}"
 }
 
-resource "google_compute_target_http_proxy" "default" {
-  name    = "test-proxy"
-  url_map = google_compute_url_map.default.id
-}
-
-resource "google_compute_url_map" "default" {
-  name            = "url-map"
-  default_service = google_compute_backend_service.default.id
+resource "google_compute_url_map" "url_map" {
+  name            = "load-balancer-${random_string.random.result}"
+  default_service = var.default_service_id
 
   host_rule {
     hosts        = ["*"]
@@ -33,11 +19,25 @@ resource "google_compute_url_map" "default" {
 
   path_matcher {
     name            = "allpaths"
-    default_service = google_compute_backend_service.default.id
+    default_service = var.default_service_id
+
+    dynamic "path_rule" {
+      for_each = var.path_rules
+      content {
+        paths   = [path_rule.value.path]
+        service = path_rule.value.backend_service_id
+      }
+    }
   }
 }
 
-resource "google_compute_global_forwarding_rule" "default" {
+resource "google_compute_target_http_proxy" "http_proxy" {
+  name    = "http-proxy-${random_string.random.result}"
+  url_map = google_compute_url_map.url_map.id
+}
+
+
+resource "google_compute_global_forwarding_rule" "load_balancer_fw_rule" {
   name                  = "lb-fw-${random_string.random.result}"
   ip_protocol           = "TCP"
   load_balancing_scheme = "EXTERNAL"

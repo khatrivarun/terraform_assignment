@@ -15,7 +15,8 @@ resource "google_compute_instance_template" "instance_template" {
   }
 
   network_interface {
-    network = var.network_name
+    network    = var.network_name
+    subnetwork = var.subnet_name
   }
 
   metadata_startup_script = var.startup_script
@@ -42,5 +43,18 @@ resource "google_compute_instance_group_manager" "managed_instance_group" {
   auto_healing_policies {
     health_check      = google_compute_http_health_check.vm_health_check.id
     initial_delay_sec = 60
+  }
+}
+
+resource "google_compute_backend_service" "backend_service" {
+  name        = "backend-service-${random_string.random.result}"
+  port_name   = "http"
+  protocol    = "HTTP"
+  timeout_sec = 10
+
+  health_checks = [google_compute_http_health_check.vm_health_check.id]
+
+  backend {
+    group = google_compute_instance_group_manager.managed_instance_group.instance_group
   }
 }

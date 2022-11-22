@@ -13,3 +13,7 @@ variable "network_name" {
 variable "startup_script" {
   type = string
 }
+
+variable "subnet_name" {
+  type = string
+}

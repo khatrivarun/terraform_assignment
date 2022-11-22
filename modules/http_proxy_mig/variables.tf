@@ -1,7 +1,10 @@
-variable "health_check_id" {
+variable "default_service_id" {
   type = string
 }
 
-variable "instance_group" {
-  type = string
+variable "path_rules" {
+  type = list(object({
+    path               = string
+    backend_service_id = string
+  }))
 }

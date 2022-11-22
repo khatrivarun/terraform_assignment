@@ -124,18 +124,64 @@ provider "google" {
 #   secret_data = "secret-data"
 # }
 
-module "managed_instance_group" {
+module "vpc_network" {
+  source = "./modules/network"
+  region = var.gcp_region
+}
+
+data "template_file" "nginx_startup_script" {
+  template = file("./nginx_script.sh")
+}
+
+data "template_file" "apache_startup_script" {
+  template = file("./apache_script.sh")
+}
+
+
+module "nginx_managed_instance_group" {
   source         = "./modules/managed_instance_group"
   machine_type   = "e2-medium"
   source_image   = "debian-cloud/debian-11"
-  network_name   = "default"
-  startup_script = <<EOT
+  network_name   = module.vpc_network.vpc_network_name
+  subnet_name    = module.vpc_network.subnet_name
+  startup_script = data.template_file.nginx_startup_script.rendered
 
-  #!/bin/bash
-  apt update
-  apt -y install apache2
-  echo "Hello world from $(hostname) $(hostname -I)" > /var/www/html/index.html
-  EOT
+  depends_on = [
+    module.vpc_network
+  ]
+}
+
+module "apache_managed_instance_group" {
+  source         = "./modules/managed_instance_group"
+  machine_type   = "e2-medium"
+  source_image   = "debian-cloud/debian-11"
+  network_name   = module.vpc_network.vpc_network_name
+  subnet_name    = module.vpc_network.subnet_name
+  startup_script = data.template_file.apache_startup_script.rendered
+
+  depends_on = [
+    module.vpc_network
+  ]
+}
+
+module "mig_load_balancer" {
+  source             = "./modules/http_proxy_mig"
+  default_service_id = module.nginx_managed_instance_group.backend_service_id
+  path_rules = [
+    {
+      backend_service_id = module.apache_managed_instance_group.backend_service_id
+      path               = "/apache"
+    },
+    {
+      backend_service_id = module.nginx_managed_instance_group.backend_service_id
+      path               = "/nginx"
+    }
+  ]
+
+  depends_on = [
+    module.apache_managed_instance_group,
+    module.nginx_managed_instance_group
+  ]
 }
 
 # resource "google_compute_backend_service" "default" {
