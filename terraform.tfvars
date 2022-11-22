@@ -1,5 +1,6 @@
 gcp_project = "q-assignment"
 gcp_region = "us-east1"
+gcp_zone = "us-east1-b"
 cluster_name = "nginx-cluster"
 cluster_region = "us-east1"
 cluster_node_pool_name = "nginx-node-pool"
