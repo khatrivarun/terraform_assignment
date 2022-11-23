@@ -124,96 +124,98 @@ provider "google" {
 #   secret_data = "secret-data"
 # }
 
-module "vpc_network" {
-  source = "./modules/network"
-  region = var.gcp_region
-}
-
-data "template_file" "nginx_startup_script" {
-  template = file("./nginx_script.sh")
-}
-
-data "template_file" "apache_startup_script" {
-  template = file("./apache_script.sh")
-}
-
-
-module "nginx_managed_instance_group" {
-  source         = "./modules/managed_instance_group"
-  machine_type   = "e2-medium"
-  source_image   = "debian-cloud/debian-11"
-  network_name   = module.vpc_network.vpc_network_name
-  subnet_name    = module.vpc_network.subnet_name
-  startup_script = data.template_file.nginx_startup_script.rendered
-
-  depends_on = [
-    module.vpc_network
-  ]
-}
-
-module "apache_managed_instance_group" {
-  source         = "./modules/managed_instance_group"
-  machine_type   = "e2-medium"
-  source_image   = "debian-cloud/debian-11"
-  network_name   = module.vpc_network.vpc_network_name
-  subnet_name    = module.vpc_network.subnet_name
-  startup_script = data.template_file.apache_startup_script.rendered
-
-  depends_on = [
-    module.vpc_network
-  ]
-}
-
-module "mig_load_balancer" {
-  source             = "./modules/http_proxy_mig"
-  default_service_id = module.nginx_managed_instance_group.backend_service_id
-  path_rules = [
-    {
-      backend_service_id = module.apache_managed_instance_group.backend_service_id
-      path               = "/apache"
-    },
-    {
-      backend_service_id = module.nginx_managed_instance_group.backend_service_id
-      path               = "/nginx"
-    }
-  ]
-
-  depends_on = [
-    module.apache_managed_instance_group,
-    module.nginx_managed_instance_group
-  ]
-}
-
-# resource "google_compute_backend_service" "default" {
-#   name        = "backend-service"
-#   port_name   = "http"
-#   protocol    = "HTTP"
-#   timeout_sec = 10
-
-#   health_checks = [google_compute_http_health_check.default.id]
-
-#   backend {
-#     group = google_compute_instance_group_manager.mig.instance_group
-#   }
+# module "vpc_network" {
+#   source = "./modules/network"
+#   region = var.gcp_region
 # }
 
-# resource "google_compute_target_http_proxy" "default" {
-#   name    = "test-proxy"
-#   url_map = google_compute_url_map.default.id
+# data "template_file" "nginx_startup_script" {
+#   template = file("./nginx_script.sh")
 # }
 
-# resource "google_compute_url_map" "default" {
-#   name            = "url-map"
-#   default_service = google_compute_backend_service.default.id
-
-#   host_rule {
-#     hosts        = ["*"]
-#     path_matcher = "allpaths"
-#   }
-
-#   path_matcher {
-#     name            = "allpaths"
-#     default_service = google_compute_backend_service.default.id
-#   }
+# data "template_file" "apache_startup_script" {
+#   template = file("./apache_script.sh")
 # }
 
+
+# module "nginx_managed_instance_group" {
+#   source         = "./modules/managed_instance_group"
+#   machine_type   = "e2-medium"
+#   source_image   = "debian-cloud/debian-11"
+#   network_name   = module.vpc_network.vpc_network_name
+#   subnet_name    = module.vpc_network.subnet_name
+#   startup_script = data.template_file.nginx_startup_script.rendered
+
+#   depends_on = [
+#     module.vpc_network
+#   ]
+# }
+
+# module "apache_managed_instance_group" {
+#   source         = "./modules/managed_instance_group"
+#   machine_type   = "e2-medium"
+#   source_image   = "debian-cloud/debian-11"
+#   network_name   = module.vpc_network.vpc_network_name
+#   subnet_name    = module.vpc_network.subnet_name
+#   startup_script = data.template_file.apache_startup_script.rendered
+
+#   depends_on = [
+#     module.vpc_network
+#   ]
+# }
+
+# module "mig_load_balancer" {
+#   source             = "./modules/http_proxy"
+#   default_service_id = module.nginx_managed_instance_group.backend_service_id
+#   path_rules = [
+#     {
+#       backend_service_id = module.apache_managed_instance_group.backend_service_id
+#       path               = "/apache"
+#     },
+#     {
+#       backend_service_id = module.nginx_managed_instance_group.backend_service_id
+#       path               = "/nginx"
+#     }
+#   ]
+
+#   depends_on = [
+#     module.apache_managed_instance_group,
+#     module.nginx_managed_instance_group
+#   ]
+# }
+
+module "nginx_cluster" {
+  source             = "./modules/gke_cluster"
+  gke_cluster_name   = var.cluster_name
+  gke_cluster_region = var.cluster_region
+  gke_node_pool_name = var.cluster_node_pool_name
+  gke_node_count     = var.cluster_node_count
+}
+
+data "google_client_config" "default" {}
+
+module "k8s_nginx" {
+  source                    = "./modules/kubernetes"
+  gke_host                  = module.nginx_cluster.gke_host
+  gke_token                 = data.google_client_config.default.access_token
+  gke_ca_certificate        = module.nginx_cluster.gke_cluster_ca_certificate
+  k8s_replicas              = var.k8s_replicas
+  k8s_deployment_name       = var.k8s_deployment_name
+  k8s_image                 = var.k8s_image
+  k8s_resource_limits       = var.k8s_resource_limits
+  k8s_resource_requests     = var.k8s_resource_requests
+  k8s_container_port        = var.k8s_container_port
+  k8s_target_container_port = var.k8s_target_container_port
+  k8s_service_type          = "NodePort"
+}
+
+module "k8s_ingress" {
+  source             = "./modules/kubernetes/v1/ingress"
+  gke_host           = module.nginx_cluster.gke_host
+  gke_token          = data.google_client_config.default.access_token
+  gke_ca_certificate = module.nginx_cluster.gke_cluster_ca_certificate
+  app_name           = var.k8s_deployment_name
+  service_name       = module.k8s_nginx.service_name
+  exposed_port       = var.k8s_target_container_port
+  ingress_path       = "/nginx"
+}

@@ -10,6 +10,10 @@ resource "google_container_cluster" "gke_cluster" {
 
   initial_node_count       = 1
   remove_default_node_pool = true
+
+  node_config {
+    machine_type = "e2-small"
+  }
 }
 
 resource "google_container_node_pool" "gke_node_pool" {
@@ -19,6 +23,6 @@ resource "google_container_node_pool" "gke_node_pool" {
   node_count = var.gke_node_count
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-small"
   }
 }
