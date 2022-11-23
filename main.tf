@@ -170,16 +170,30 @@ provider "google-beta" {
 #   ]
 # }
 
+# module "nginx_http_proxy_backend_service" {
+#   source          = "./modules/managed_instance_group/backend_service"
+#   backend_mode    = "HTTP_PROXY"
+#   health_check_id = module.nginx_managed_instance_group.health_check_id
+#   instance_group  = module.nginx_managed_instance_group.instance_group
+# }
+
+# module "apache_http_proxy_backend_service" {
+#   source          = "./modules/managed_instance_group/backend_service"
+#   backend_mode    = "HTTP_PROXY"
+#   health_check_id = module.apache_managed_instance_group.health_check_id
+#   instance_group  = module.apache_managed_instance_group.instance_group
+# }
+
 # module "mig_load_balancer" {
 #   source             = "./modules/load_balancers/http_proxy"
-#   default_service_id = module.nginx_managed_instance_group.backend_service_id
+#   default_service_id = module.nginx_http_proxy_backend_service.backend_service_id
 #   path_rules = [
 #     {
-#       backend_service_id = module.apache_managed_instance_group.backend_service_id
+#       backend_service_id = module.apache_http_proxy_backend_service.backend_service_id
 #       path               = "/apache"
 #     },
 #     {
-#       backend_service_id = module.nginx_managed_instance_group.backend_service_id
+#       backend_service_id = module.nginx_http_proxy_backend_service.backend_service_id
 #       path               = "/nginx"
 #     }
 #   ]
@@ -226,6 +240,76 @@ provider "google-beta" {
 #   ingress_path       = "/nginx"
 # }
 
+# module "vpc_network" {
+#   source = "./modules/network"
+#   region = var.gcp_region
+# }
+
+# data "template_file" "nginx_startup_script" {
+#   template = file("./nginx_script.sh")
+# }
+
+# module "nginx_managed_instance_group" {
+#   source         = "./modules/managed_instance_group"
+#   machine_type   = "e2-medium"
+#   source_image   = "debian-cloud/debian-11"
+#   network_name   = module.vpc_network.vpc_network_name
+#   subnet_name    = module.vpc_network.subnet_name
+#   startup_script = data.template_file.nginx_startup_script.rendered
+
+#   depends_on = [
+#     module.vpc_network
+#   ]
+# }
+
+# module "http_external_backend_service" {
+#   source          = "./modules/managed_instance_group/backend_service"
+#   backend_mode    = "HTTP_EXTERNAL"
+#   health_check_id = module.nginx_managed_instance_group.health_check_id
+#   instance_group  = module.nginx_managed_instance_group.instance_group
+# }
+
+# module "http_mig_load_balancer" {
+#   source     = "./modules/load_balancers/http"
+#   service_id = module.http_external_backend_service.backend_service_id
+# }
+
+# module "vpc_network" {
+#   source = "./modules/network"
+#   region = var.gcp_region
+# }
+
+# data "template_file" "nginx_startup_script" {
+#   template = file("./nginx_script.sh")
+# }
+
+# module "nginx_managed_instance_group" {
+#   source         = "./modules/managed_instance_group"
+#   machine_type   = "e2-medium"
+#   source_image   = "debian-cloud/debian-11"
+#   network_name   = module.vpc_network.vpc_network_name
+#   subnet_name    = module.vpc_network.subnet_name
+#   startup_script = data.template_file.nginx_startup_script.rendered
+
+#   depends_on = [
+#     module.vpc_network
+#   ]
+# }
+
+# module "tcp_external_backend_service" {
+#   source          = "./modules/managed_instance_group/backend_service"
+#   backend_mode    = "TCP_EXTERNAL"
+#   health_check_id = module.nginx_managed_instance_group.health_check_id
+#   instance_group  = module.nginx_managed_instance_group.instance_group
+# }
+
+# module "tcp_load_balancer" {
+#   source             = "./modules/load_balancers/tcp"
+#   backend_service_id = module.tcp_external_backend_service.backend_service_id
+#   mode               = "EXTERNAL"
+#   port_range         = "80"
+# }
+
 module "vpc_network" {
   source = "./modules/network"
   region = var.gcp_region
@@ -233,10 +317,6 @@ module "vpc_network" {
 
 data "template_file" "nginx_startup_script" {
   template = file("./nginx_script.sh")
-}
-
-data "template_file" "apache_startup_script" {
-  template = file("./apache_script.sh")
 }
 
 module "nginx_managed_instance_group" {
@@ -252,7 +332,18 @@ module "nginx_managed_instance_group" {
   ]
 }
 
-# module "http_mig_load_balancer" {
-#   source     = "./modules/load_balancers/http"
-#   service_id = module.nginx_managed_instance_group.backend_service_id
-# }
+module "tcp_internal_backend_service" {
+  source          = "./modules/managed_instance_group/backend_service"
+  backend_mode    = "TCP_INTERNAL"
+  health_check_id = module.nginx_managed_instance_group.health_check_id
+  instance_group  = module.nginx_managed_instance_group.instance_group
+}
+
+module "tcp_load_balancer" {
+  source             = "./modules/load_balancers/tcp"
+  backend_service_id = module.tcp_internal_backend_service.backend_service_id
+  mode               = "INTERNAL"
+  port_range         = "80"
+  network            = module.vpc_network.vpc_network_name
+  subnetwork         = module.vpc_network.subnet_name
+}

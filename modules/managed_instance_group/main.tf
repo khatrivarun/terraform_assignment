@@ -22,11 +22,11 @@ resource "google_compute_instance_template" "instance_template" {
   metadata_startup_script = var.startup_script
 }
 
-resource "google_compute_region_health_check" "vm_health_check" {
-  name = "vm-health-check-${random_string.random.result}"
-  tcp_health_check {
-    port = 80
-  }
+resource "google_compute_http_health_check" "vm_health_check" {
+  name               = "vm-health-check-${random_string.random.result}"
+  request_path       = "/"
+  check_interval_sec = 1
+  timeout_sec        = 1
 }
 
 resource "google_compute_instance_group_manager" "managed_instance_group" {
@@ -41,20 +41,7 @@ resource "google_compute_instance_group_manager" "managed_instance_group" {
   target_size = 2
 
   auto_healing_policies {
-    health_check      = google_compute_region_health_check.vm_health_check.id
+    health_check      = google_compute_http_health_check.vm_health_check.id
     initial_delay_sec = 60
-  }
-}
-
-resource "google_compute_region_backend_service" "backend_service" {
-  name                  = "backend-service-${random_string.random.result}"
-  protocol              = "UNSPECIFIED"
-  load_balancing_scheme = "EXTERNAL"
-  timeout_sec           = 10
-
-  health_checks = [google_compute_region_health_check.vm_health_check.id]
-
-  backend {
-    group = google_compute_instance_group_manager.managed_instance_group.instance_group
   }
 }
