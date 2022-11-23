@@ -165,7 +165,7 @@ provider "google" {
 # }
 
 # module "mig_load_balancer" {
-#   source             = "./modules/http_proxy"
+#   source             = "./modules/load_balancers/http_proxy"
 #   default_service_id = module.nginx_managed_instance_group.backend_service_id
 #   path_rules = [
 #     {
@@ -184,38 +184,69 @@ provider "google" {
 #   ]
 # }
 
-module "nginx_cluster" {
-  source             = "./modules/gke_cluster"
-  gke_cluster_name   = var.cluster_name
-  gke_cluster_region = var.cluster_region
-  gke_node_pool_name = var.cluster_node_pool_name
-  gke_node_count     = var.cluster_node_count
+# module "nginx_cluster" {
+#   source             = "./modules/gke_cluster"
+#   gke_cluster_name   = var.cluster_name
+#   gke_cluster_region = var.cluster_region
+#   gke_node_pool_name = var.cluster_node_pool_name
+#   gke_node_count     = var.cluster_node_count
+# }
+
+# data "google_client_config" "default" {}
+
+# module "k8s_nginx" {
+#   source                    = "./modules/kubernetes"
+#   gke_host                  = module.nginx_cluster.gke_host
+#   gke_token                 = data.google_client_config.default.access_token
+#   gke_ca_certificate        = module.nginx_cluster.gke_cluster_ca_certificate
+#   k8s_replicas              = var.k8s_replicas
+#   k8s_deployment_name       = var.k8s_deployment_name
+#   k8s_image                 = var.k8s_image
+#   k8s_resource_limits       = var.k8s_resource_limits
+#   k8s_resource_requests     = var.k8s_resource_requests
+#   k8s_container_port        = var.k8s_container_port
+#   k8s_target_container_port = var.k8s_target_container_port
+#   k8s_service_type          = "NodePort"
+# }
+
+# module "k8s_ingress" {
+#   source             = "./modules/kubernetes/v1/ingress"
+#   gke_host           = module.nginx_cluster.gke_host
+#   gke_token          = data.google_client_config.default.access_token
+#   gke_ca_certificate = module.nginx_cluster.gke_cluster_ca_certificate
+#   app_name           = var.k8s_deployment_name
+#   service_name       = module.k8s_nginx.service_name
+#   exposed_port       = var.k8s_target_container_port
+#   ingress_path       = "/nginx"
+# }
+
+module "vpc_network" {
+  source = "./modules/network"
+  region = var.gcp_region
 }
 
-data "google_client_config" "default" {}
-
-module "k8s_nginx" {
-  source                    = "./modules/kubernetes"
-  gke_host                  = module.nginx_cluster.gke_host
-  gke_token                 = data.google_client_config.default.access_token
-  gke_ca_certificate        = module.nginx_cluster.gke_cluster_ca_certificate
-  k8s_replicas              = var.k8s_replicas
-  k8s_deployment_name       = var.k8s_deployment_name
-  k8s_image                 = var.k8s_image
-  k8s_resource_limits       = var.k8s_resource_limits
-  k8s_resource_requests     = var.k8s_resource_requests
-  k8s_container_port        = var.k8s_container_port
-  k8s_target_container_port = var.k8s_target_container_port
-  k8s_service_type          = "NodePort"
+data "template_file" "nginx_startup_script" {
+  template = file("./nginx_script.sh")
 }
 
-module "k8s_ingress" {
-  source             = "./modules/kubernetes/v1/ingress"
-  gke_host           = module.nginx_cluster.gke_host
-  gke_token          = data.google_client_config.default.access_token
-  gke_ca_certificate = module.nginx_cluster.gke_cluster_ca_certificate
-  app_name           = var.k8s_deployment_name
-  service_name       = module.k8s_nginx.service_name
-  exposed_port       = var.k8s_target_container_port
-  ingress_path       = "/nginx"
+data "template_file" "apache_startup_script" {
+  template = file("./apache_script.sh")
+}
+
+module "nginx_managed_instance_group" {
+  source         = "./modules/managed_instance_group"
+  machine_type   = "e2-medium"
+  source_image   = "debian-cloud/debian-11"
+  network_name   = module.vpc_network.vpc_network_name
+  subnet_name    = module.vpc_network.subnet_name
+  startup_script = data.template_file.nginx_startup_script.rendered
+
+  depends_on = [
+    module.vpc_network
+  ]
+}
+
+module "http_mig_load_balancer" {
+  source     = "./modules/load_balancers/http"
+  service_id = module.nginx_managed_instance_group.backend_service_id
 }

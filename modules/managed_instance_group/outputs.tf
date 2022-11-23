@@ -1,5 +1,5 @@
 output "health_check_id" {
-  value = google_compute_http_health_check.vm_health_check.id
+  value = google_compute_region_health_check.vm_health_check.id
 }
 
 output "instance_group" {
@@ -7,5 +7,5 @@ output "instance_group" {
 }
 
 output "backend_service_id" {
-  value = google_compute_backend_service.backend_service.id
+  value = google_compute_region_backend_service.backend_service.id
 }
