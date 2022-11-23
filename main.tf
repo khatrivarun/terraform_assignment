@@ -4,6 +4,12 @@ provider "google" {
   zone    = var.gcp_zone
 }
 
+provider "google-beta" {
+  project = var.gcp_project
+  region  = var.gcp_region
+  zone    = var.gcp_zone
+}
+
 # resource "random_string" "random" {
 #   length  = 5
 #   special = false
@@ -246,7 +252,7 @@ module "nginx_managed_instance_group" {
   ]
 }
 
-module "http_mig_load_balancer" {
-  source     = "./modules/load_balancers/http"
-  service_id = module.nginx_managed_instance_group.backend_service_id
-}
+# module "http_mig_load_balancer" {
+#   source     = "./modules/load_balancers/http"
+#   service_id = module.nginx_managed_instance_group.backend_service_id
+# }
