@@ -1,8 +1,8 @@
-gcp_project            = "the-axiom-369510"
-gcp_region             = "europe-west1"
-gcp_zone               = "europe-west1-b"
+gcp_project            = "second-modem-369610"
+gcp_region             = "us-east1"
+gcp_zone               = "us-east1-b"
 cluster_name           = "nginx-cluster"
-cluster_region         = "europe-west1"
+cluster_region         = "us-east1"
 cluster_node_pool_name = "nginx-node-pool"
 cluster_node_count     = 1
 k8s_replicas           = 1

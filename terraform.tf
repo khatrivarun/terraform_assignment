@@ -13,9 +13,9 @@ terraform {
       source  = "hashicorp/google-beta"
       version = "4.44.1"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = "3.2.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.40.0"
     }
     archive = {
       source  = "hashicorp/archive"

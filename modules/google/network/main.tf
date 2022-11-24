@@ -5,13 +5,14 @@ resource "random_string" "random" {
 }
 
 resource "google_compute_network" "vpc_network" {
-  name = "vpc-network-${random_string.random.result}"
+  name                    = "vpc-network-${random_string.random.result}"
+  auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnet" {
   name          = "subnet-${random_string.random.result}"
   network       = google_compute_network.vpc_network.id
-  ip_cidr_range = "10.0.0.0/16"
+  ip_cidr_range = var.ip_cidr_range
   region        = var.region
 }
 

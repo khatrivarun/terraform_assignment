@@ -1,15 +1,3 @@
-provider "google" {
-  project = var.gcp_project
-  region  = var.gcp_region
-  zone    = var.gcp_zone
-}
-
-provider "google-beta" {
-  project = var.gcp_project
-  region  = var.gcp_region
-  zone    = var.gcp_zone
-}
-
 # resource "random_string" "random" {
 #   length  = 5
 #   special = false
@@ -18,7 +6,7 @@ provider "google-beta" {
 
 
 # module "nginx_cluster" {
-#   source             = "./modules/gke_cluster"
+#   source             = "./modules/google/gke_cluster"
 #   gke_cluster_name   = var.cluster_name
 #   gke_cluster_region = var.cluster_region
 #   gke_node_pool_name = var.cluster_node_pool_name
@@ -28,7 +16,7 @@ provider "google-beta" {
 # data "google_client_config" "default" {}
 
 # module "k8s_nginx" {
-#   source                    = "./modules/kubernetes"
+#   source                    = "./modules/google/kubernetes"
 #   gke_host                  = module.nginx_cluster.gke_host
 #   gke_token                 = data.google_client_config.default.access_token
 #   gke_ca_certificate        = module.nginx_cluster.gke_cluster_ca_certificate
@@ -43,7 +31,7 @@ provider "google-beta" {
 # }
 
 # module "cat_bucket" {
-#   source          = "./modules/cloud_storage"
+#   source          = "./modules/google/cloud_storage"
 #   bucket_name     = var.bucket_name
 #   bucket_location = var.bucket_location
 #   object_name     = var.object_name
@@ -52,12 +40,12 @@ provider "google-beta" {
 # }
 
 # module "cat_bucket_lb" {
-#   source      = "./modules/bucket_lb"
+#   source      = "./modules/google/bucket_lb"
 #   bucket_name = module.cat_bucket.bucket_name
 # }
 
 # module "gcp-sql" {
-#   source           = "./modules/sql"
+#   source           = "./modules/google/sql"
 #   sql_name         = var.sql_name
 #   sql_version      = var.sql_version
 #   sql_region       = var.sql_region
@@ -84,7 +72,7 @@ provider "google-beta" {
 # }
 
 # module "code_bucket" {
-#   source          = "./modules/cloud_storage"
+#   source          = "./modules/google/cloud_storage"
 #   bucket_name     = var.code_bucket_name
 #   bucket_location = var.bucket_location
 #   object_name     = var.code_object_name
@@ -131,7 +119,7 @@ provider "google-beta" {
 # }
 
 # module "vpc_network" {
-#   source = "./modules/network"
+#   source = "./modules/google/network"
 #   region = var.gcp_region
 # }
 
@@ -145,7 +133,7 @@ provider "google-beta" {
 
 
 # module "nginx_managed_instance_group" {
-#   source         = "./modules/managed_instance_group"
+#   source         = "./modules/google/managed_instance_group"
 #   machine_type   = "e2-medium"
 #   source_image   = "debian-cloud/debian-11"
 #   network_name   = module.vpc_network.vpc_network_name
@@ -158,7 +146,7 @@ provider "google-beta" {
 # }
 
 # module "apache_managed_instance_group" {
-#   source         = "./modules/managed_instance_group"
+#   source         = "./modules/google/managed_instance_group"
 #   machine_type   = "e2-medium"
 #   source_image   = "debian-cloud/debian-11"
 #   network_name   = module.vpc_network.vpc_network_name
@@ -171,21 +159,21 @@ provider "google-beta" {
 # }
 
 # module "nginx_http_proxy_backend_service" {
-#   source          = "./modules/managed_instance_group/backend_service"
+#   source          = "./modules/google/managed_instance_group/backend_service"
 #   backend_mode    = "HTTP_PROXY"
 #   health_check_id = module.nginx_managed_instance_group.health_check_id
 #   instance_group  = module.nginx_managed_instance_group.instance_group
 # }
 
 # module "apache_http_proxy_backend_service" {
-#   source          = "./modules/managed_instance_group/backend_service"
+#   source          = "./modules/google/managed_instance_group/backend_service"
 #   backend_mode    = "HTTP_PROXY"
 #   health_check_id = module.apache_managed_instance_group.health_check_id
 #   instance_group  = module.apache_managed_instance_group.instance_group
 # }
 
 # module "mig_load_balancer" {
-#   source             = "./modules/load_balancers/http_proxy"
+#   source             = "./modules/google/load_balancers/http_proxy"
 #   default_service_id = module.nginx_http_proxy_backend_service.backend_service_id
 #   path_rules = [
 #     {
@@ -205,7 +193,7 @@ provider "google-beta" {
 # }
 
 # module "nginx_cluster" {
-#   source             = "./modules/gke_cluster"
+#   source             = "./modules/google/gke_cluster"
 #   gke_cluster_name   = var.cluster_name
 #   gke_cluster_region = var.cluster_region
 #   gke_node_pool_name = var.cluster_node_pool_name
@@ -215,7 +203,7 @@ provider "google-beta" {
 # data "google_client_config" "default" {}
 
 # module "k8s_nginx" {
-#   source                    = "./modules/kubernetes"
+#   source                    = "./modules/google/kubernetes"
 #   gke_host                  = module.nginx_cluster.gke_host
 #   gke_token                 = data.google_client_config.default.access_token
 #   gke_ca_certificate        = module.nginx_cluster.gke_cluster_ca_certificate
@@ -230,7 +218,7 @@ provider "google-beta" {
 # }
 
 # module "k8s_ingress" {
-#   source             = "./modules/kubernetes/v1/ingress"
+#   source             = "./modules/google/kubernetes/v1/ingress"
 #   gke_host           = module.nginx_cluster.gke_host
 #   gke_token          = data.google_client_config.default.access_token
 #   gke_ca_certificate = module.nginx_cluster.gke_cluster_ca_certificate
@@ -241,7 +229,7 @@ provider "google-beta" {
 # }
 
 # module "vpc_network" {
-#   source = "./modules/network"
+#   source = "./modules/google/network"
 #   region = var.gcp_region
 # }
 
@@ -250,7 +238,7 @@ provider "google-beta" {
 # }
 
 # module "nginx_managed_instance_group" {
-#   source         = "./modules/managed_instance_group"
+#   source         = "./modules/google/managed_instance_group"
 #   machine_type   = "e2-medium"
 #   source_image   = "debian-cloud/debian-11"
 #   network_name   = module.vpc_network.vpc_network_name
@@ -263,19 +251,19 @@ provider "google-beta" {
 # }
 
 # module "http_external_backend_service" {
-#   source          = "./modules/managed_instance_group/backend_service"
+#   source          = "./modules/google/managed_instance_group/backend_service"
 #   backend_mode    = "HTTP_EXTERNAL"
 #   health_check_id = module.nginx_managed_instance_group.health_check_id
 #   instance_group  = module.nginx_managed_instance_group.instance_group
 # }
 
 # module "http_mig_load_balancer" {
-#   source     = "./modules/load_balancers/http"
+#   source     = "./modules/google/load_balancers/http"
 #   service_id = module.http_external_backend_service.backend_service_id
 # }
 
 # module "vpc_network" {
-#   source = "./modules/network"
+#   source = "./modules/google/network"
 #   region = var.gcp_region
 # }
 
@@ -284,7 +272,7 @@ provider "google-beta" {
 # }
 
 # module "nginx_managed_instance_group" {
-#   source         = "./modules/managed_instance_group"
+#   source         = "./modules/google/managed_instance_group"
 #   machine_type   = "e2-medium"
 #   source_image   = "debian-cloud/debian-11"
 #   network_name   = module.vpc_network.vpc_network_name
@@ -297,53 +285,130 @@ provider "google-beta" {
 # }
 
 # module "tcp_external_backend_service" {
-#   source          = "./modules/managed_instance_group/backend_service"
+#   source          = "./modules/google/managed_instance_group/backend_service"
 #   backend_mode    = "TCP_EXTERNAL"
 #   health_check_id = module.nginx_managed_instance_group.health_check_id
 #   instance_group  = module.nginx_managed_instance_group.instance_group
 # }
 
 # module "tcp_load_balancer" {
-#   source             = "./modules/load_balancers/tcp"
+#   source             = "./modules/google/load_balancers/tcp"
 #   backend_service_id = module.tcp_external_backend_service.backend_service_id
 #   mode               = "EXTERNAL"
 #   port_range         = "80"
 # }
 
-module "vpc_network" {
-  source = "./modules/network"
-  region = var.gcp_region
+# module "vpc_network" {
+#   source = "./modules/google/network"
+#   region = var.gcp_region
+# }
+
+# data "template_file" "nginx_startup_script" {
+#   template = file("./nginx_script.sh")
+# }
+
+# module "nginx_managed_instance_group" {
+#   source         = "./modules/google/managed_instance_group"
+#   machine_type   = "e2-medium"
+#   source_image   = "debian-cloud/debian-11"
+#   network_name   = module.vpc_network.vpc_network_name
+#   subnet_name    = module.vpc_network.subnet_name
+#   startup_script = data.template_file.nginx_startup_script.rendered
+
+#   depends_on = [
+#     module.vpc_network
+#   ]
+# }
+
+# module "tcp_internal_backend_service" {
+#   source          = "./modules/google/managed_instance_group/backend_service"
+#   backend_mode    = "TCP_INTERNAL"
+#   health_check_id = module.nginx_managed_instance_group.health_check_id
+#   instance_group  = module.nginx_managed_instance_group.instance_group
+# }
+
+# module "tcp_load_balancer" {
+#   source             = "./modules/google/load_balancers/tcp"
+#   backend_service_id = module.tcp_internal_backend_service.backend_service_id
+#   mode               = "INTERNAL"
+#   port_range         = "80"
+#   network            = module.vpc_network.vpc_network_name
+#   subnetwork         = module.vpc_network.subnet_name
+# }
+
+module "google_custom_vpc" {
+  source        = "./modules/google/network"
+  ip_cidr_range = "10.1.1.0/24"
 }
 
-data "template_file" "nginx_startup_script" {
-  template = file("./nginx_script.sh")
+module "google_ha_vpn" {
+  source  = "./modules/google/network/vpn"
+  network = module.google_custom_vpc.vpc_network_name
 }
 
-module "nginx_managed_instance_group" {
-  source         = "./modules/managed_instance_group"
-  machine_type   = "e2-medium"
-  source_image   = "debian-cloud/debian-11"
-  network_name   = module.vpc_network.vpc_network_name
-  subnet_name    = module.vpc_network.subnet_name
-  startup_script = data.template_file.nginx_startup_script.rendered
-
-  depends_on = [
-    module.vpc_network
-  ]
+module "google_cloud_router" {
+  source  = "./modules/google/network/cloud_router"
+  network = module.google_custom_vpc.vpc_network_name
 }
 
-module "tcp_internal_backend_service" {
-  source          = "./modules/managed_instance_group/backend_service"
-  backend_mode    = "TCP_INTERNAL"
-  health_check_id = module.nginx_managed_instance_group.health_check_id
-  instance_group  = module.nginx_managed_instance_group.instance_group
+module "aws_vpc" {
+  source = "./modules/aws/vpc"
 }
 
-module "tcp_load_balancer" {
-  source             = "./modules/load_balancers/tcp"
-  backend_service_id = module.tcp_internal_backend_service.backend_service_id
-  mode               = "INTERNAL"
-  port_range         = "80"
-  network            = module.vpc_network.vpc_network_name
-  subnetwork         = module.vpc_network.subnet_name
+module "aws_customer_gateways" {
+  source                       = "./modules/aws/network/customer_gateway"
+  google_asn                   = module.google_cloud_router.bgp_asn
+  google_interface_0_public_ip = module.google_ha_vpn.interface_0_public_ip
+  google_interface_1_public_ip = module.google_ha_vpn.interface_1_public_ip
+}
+
+module "aws_vpn_gateway" {
+  source             = "./modules/aws/network/vpn_gateway"
+  vpc_id             = module.aws_vpc.vpc_id
+  interface_0_cgw_id = module.aws_customer_gateways.interface_0_cgw_id
+  interface_1_cgw_id = module.aws_customer_gateways.interface_1_cgw_id
+}
+
+module "external_gateway" {
+  source                     = "./modules/google/external_gateway"
+  cgw_1_tunnel_1_external_ip = module.aws_vpn_gateway.cgw_1_tunnel_1_external_ip
+  cgw_1_tunnel_2_external_ip = module.aws_vpn_gateway.cgw_1_tunnel_2_external_ip
+  cgw_2_tunnel_1_external_ip = module.aws_vpn_gateway.cgw_2_tunnel_1_external_ip
+  cgw_2_tunnel_2_external_ip = module.aws_vpn_gateway.cgw_2_tunnel_2_external_ip
+}
+
+module "vpn_tunnels" {
+  source                       = "./modules/google/vpn_tunnels"
+  vpn_gateway_id               = module.google_ha_vpn.vpn_gateway
+  router_url                   = module.google_cloud_router.url
+  external_gateway_id          = module.external_gateway.external_gateway_id
+  cgw_1_tunnel_1_shared_secret = module.aws_vpn_gateway.cgw_1_tunnel_1_shared_secret
+  cgw_1_tunnel_2_shared_secret = module.aws_vpn_gateway.cgw_1_tunnel_2_shared_secret
+  cgw_2_tunnel_1_shared_secret = module.aws_vpn_gateway.cgw_2_tunnel_1_shared_secret
+  cgw_2_tunnel_2_shared_secret = module.aws_vpn_gateway.cgw_2_tunnel_2_shared_secret
+}
+
+module "router_interfaces" {
+  source                           = "./modules/google/network/cloud_router/interfaces"
+  cgw_1_tunnel_1_internal_ip_range = module.aws_vpn_gateway.cgw_1_tunnel_1_internal_ip_range
+  cgw_1_tunnel_2_internal_ip_range = module.aws_vpn_gateway.cgw_1_tunnel_2_internal_ip_range
+  cgw_2_tunnel_1_internal_ip_range = module.aws_vpn_gateway.cgw_2_tunnel_1_internal_ip_range
+  cgw_2_tunnel_2_internal_ip_range = module.aws_vpn_gateway.cgw_2_tunnel_2_internal_ip_range
+
+  vgw_1_tunnel_1_internal_ip_range = module.aws_vpn_gateway.vgw_1_tunnel_1_internal_ip_range
+  vgw_1_tunnel_2_internal_ip_range = module.aws_vpn_gateway.vgw_1_tunnel_2_internal_ip_range
+  vgw_2_tunnel_1_internal_ip_range = module.aws_vpn_gateway.vgw_2_tunnel_1_internal_ip_range
+  vgw_2_tunnel_2_internal_ip_range = module.aws_vpn_gateway.vgw_2_tunnel_2_internal_ip_range
+
+  tunnel_1 = module.vpn_tunnels.tunnel_1
+  tunnel_2 = module.vpn_tunnels.tunnel_2
+  tunnel_3 = module.vpn_tunnels.tunnel_3
+  tunnel_4 = module.vpn_tunnels.tunnel_4
+
+  router = module.google_cloud_router.url
+
+  cgw_1_tunnel_1_internal_bgp_asn = module.aws_vpn_gateway.cgw_1_tunnel_1_internal_bgp_asn
+  cgw_1_tunnel_2_internal_bgp_asn = module.aws_vpn_gateway.cgw_1_tunnel_2_internal_bgp_asn
+  cgw_2_tunnel_1_internal_bgp_asn = module.aws_vpn_gateway.cgw_2_tunnel_1_internal_bgp_asn
+  cgw_2_tunnel_2_internal_bgp_asn = module.aws_vpn_gateway.cgw_2_tunnel_2_internal_bgp_asn
 }
