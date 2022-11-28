@@ -1,9 +1,8 @@
-output "interface_0_public_ip" {
-  value = google_compute_ha_vpn_gateway.ha_vpn.vpn_interfaces.0.ip_address
-}
-
-output "interface_1_public_ip" {
-  value = google_compute_ha_vpn_gateway.ha_vpn.vpn_interfaces.1.ip_address
+output "public_ip_interfaces" {
+  value = {
+    "interface_0" : google_compute_ha_vpn_gateway.ha_vpn.vpn_interfaces.0.ip_address
+    "interface_1" : google_compute_ha_vpn_gateway.ha_vpn.vpn_interfaces.1.ip_address
+  }
 }
 
 output "vpn_interfaces" {

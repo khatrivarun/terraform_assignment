@@ -12,7 +12,7 @@ resource "google_compute_vpn_tunnel" "tunnel1" {
   peer_external_gateway           = var.external_gateway_id
   peer_external_gateway_interface = 0
   ike_version                     = 2
-  shared_secret                   = var.cgw_1_tunnel_1_shared_secret
+  shared_secret                   = var.cgw_shared_secrets["interface_0"]["tunnel_1"]
   router                          = var.router_url
   vpn_gateway                     = var.vpn_gateway_id
   vpn_gateway_interface           = 0
@@ -26,7 +26,7 @@ resource "google_compute_vpn_tunnel" "tunnel2" {
   peer_external_gateway           = var.external_gateway_id
   peer_external_gateway_interface = 1
   ike_version                     = 2
-  shared_secret                   = var.cgw_1_tunnel_2_shared_secret
+  shared_secret                   = var.cgw_shared_secrets["interface_0"]["tunnel_2"]
   router                          = var.router_url
   vpn_gateway                     = var.vpn_gateway_id
   vpn_gateway_interface           = 0
@@ -40,7 +40,7 @@ resource "google_compute_vpn_tunnel" "tunnel3" {
   peer_external_gateway           = var.external_gateway_id
   peer_external_gateway_interface = 2
   ike_version                     = 2
-  shared_secret                   = var.cgw_2_tunnel_1_shared_secret
+  shared_secret                   = var.cgw_shared_secrets["interface_1"]["tunnel_1"]
   router                          = var.router_url
   vpn_gateway                     = var.vpn_gateway_id
   vpn_gateway_interface           = 1
@@ -54,7 +54,7 @@ resource "google_compute_vpn_tunnel" "tunnel4" {
   peer_external_gateway           = var.external_gateway_id
   peer_external_gateway_interface = 3
   ike_version                     = 2
-  shared_secret                   = var.cgw_2_tunnel_2_shared_secret
+  shared_secret                   = var.cgw_shared_secrets["interface_1"]["tunnel_2"]
   router                          = var.router_url
   vpn_gateway                     = var.vpn_gateway_id
   vpn_gateway_interface           = 1

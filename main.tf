@@ -356,59 +356,35 @@ module "aws_vpc" {
 }
 
 module "aws_customer_gateways" {
-  source                       = "./modules/aws/network/customer_gateway"
-  google_asn                   = module.google_cloud_router.bgp_asn
-  google_interface_0_public_ip = module.google_ha_vpn.interface_0_public_ip
-  google_interface_1_public_ip = module.google_ha_vpn.interface_1_public_ip
+  source            = "./modules/aws/network/customer_gateway"
+  google_asn        = module.google_cloud_router.bgp_asn
+  google_interfaces = module.google_ha_vpn.public_ip_interfaces
 }
 
 module "aws_vpn_gateway" {
-  source             = "./modules/aws/network/vpn_gateway"
-  vpc_id             = module.aws_vpc.vpc_id
-  interface_0_cgw_id = module.aws_customer_gateways.interface_0_cgw_id
-  interface_1_cgw_id = module.aws_customer_gateways.interface_1_cgw_id
+  source         = "./modules/aws/network/vpn_gateway"
+  vpc_id         = module.aws_vpc.vpc_id
+  cgw_interfaces = module.aws_customer_gateways.cgw_interfaces
 }
 
-module "external_gateway" {
-  source                     = "./modules/google/external_gateway"
-  cgw_1_tunnel_1_external_ip = module.aws_vpn_gateway.cgw_1_tunnel_1_external_ip
-  cgw_1_tunnel_2_external_ip = module.aws_vpn_gateway.cgw_1_tunnel_2_external_ip
-  cgw_2_tunnel_1_external_ip = module.aws_vpn_gateway.cgw_2_tunnel_1_external_ip
-  cgw_2_tunnel_2_external_ip = module.aws_vpn_gateway.cgw_2_tunnel_2_external_ip
+module "google_external_gateway" {
+  source      = "./modules/google/external_gateway"
+  cgw_tunnels = module.aws_vpn_gateway.cgw_tunnels
 }
 
-module "vpn_tunnels" {
-  source                       = "./modules/google/vpn_tunnels"
-  vpn_gateway_id               = module.google_ha_vpn.vpn_gateway
-  router_url                   = module.google_cloud_router.url
-  external_gateway_id          = module.external_gateway.external_gateway_id
-  cgw_1_tunnel_1_shared_secret = module.aws_vpn_gateway.cgw_1_tunnel_1_shared_secret
-  cgw_1_tunnel_2_shared_secret = module.aws_vpn_gateway.cgw_1_tunnel_2_shared_secret
-  cgw_2_tunnel_1_shared_secret = module.aws_vpn_gateway.cgw_2_tunnel_1_shared_secret
-  cgw_2_tunnel_2_shared_secret = module.aws_vpn_gateway.cgw_2_tunnel_2_shared_secret
+module "google_vpn_tunnels" {
+  source              = "./modules/google/vpn_tunnels"
+  vpn_gateway_id      = module.google_ha_vpn.vpn_gateway
+  router_url          = module.google_cloud_router.url
+  external_gateway_id = module.google_external_gateway.external_gateway_id
+  cgw_shared_secrets  = module.aws_vpn_gateway.cgw_shared_secrets
 }
 
-module "router_interfaces" {
-  source                           = "./modules/google/network/cloud_router/interfaces"
-  cgw_1_tunnel_1_internal_ip_range = module.aws_vpn_gateway.cgw_1_tunnel_1_internal_ip_range
-  cgw_1_tunnel_2_internal_ip_range = module.aws_vpn_gateway.cgw_1_tunnel_2_internal_ip_range
-  cgw_2_tunnel_1_internal_ip_range = module.aws_vpn_gateway.cgw_2_tunnel_1_internal_ip_range
-  cgw_2_tunnel_2_internal_ip_range = module.aws_vpn_gateway.cgw_2_tunnel_2_internal_ip_range
-
-  vgw_1_tunnel_1_internal_ip_range = module.aws_vpn_gateway.vgw_1_tunnel_1_internal_ip_range
-  vgw_1_tunnel_2_internal_ip_range = module.aws_vpn_gateway.vgw_1_tunnel_2_internal_ip_range
-  vgw_2_tunnel_1_internal_ip_range = module.aws_vpn_gateway.vgw_2_tunnel_1_internal_ip_range
-  vgw_2_tunnel_2_internal_ip_range = module.aws_vpn_gateway.vgw_2_tunnel_2_internal_ip_range
-
-  tunnel_1 = module.vpn_tunnels.tunnel_1
-  tunnel_2 = module.vpn_tunnels.tunnel_2
-  tunnel_3 = module.vpn_tunnels.tunnel_3
-  tunnel_4 = module.vpn_tunnels.tunnel_4
-
-  router = module.google_cloud_router.url
-
-  cgw_1_tunnel_1_internal_bgp_asn = module.aws_vpn_gateway.cgw_1_tunnel_1_internal_bgp_asn
-  cgw_1_tunnel_2_internal_bgp_asn = module.aws_vpn_gateway.cgw_1_tunnel_2_internal_bgp_asn
-  cgw_2_tunnel_1_internal_bgp_asn = module.aws_vpn_gateway.cgw_2_tunnel_1_internal_bgp_asn
-  cgw_2_tunnel_2_internal_bgp_asn = module.aws_vpn_gateway.cgw_2_tunnel_2_internal_bgp_asn
+module "google_router_interfaces" {
+  source                 = "./modules/google/network/cloud_router/interfaces"
+  cgw_internal_ip_ranges = module.aws_vpn_gateway.cgw_internal_ip_ranges
+  tunnels                = module.google_vpn_tunnels.tunnels
+  vgw_internal_ips       = module.aws_vpn_gateway.vgw_internal_ips
+  cgw_bgp_asns           = module.aws_vpn_gateway.cgw_bgp_asns
+  router                 = module.google_cloud_router.url
 }

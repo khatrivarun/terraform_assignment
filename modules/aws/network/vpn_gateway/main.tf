@@ -9,14 +9,14 @@ resource "aws_vpn_gateway_attachment" "vpn_attachment" {
 }
 
 resource "aws_vpn_connection" "interface_0_cgw_connection" {
-  customer_gateway_id = var.interface_0_cgw_id
+  customer_gateway_id = var.cgw_interfaces["interface_0"]
   vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
   type                = "ipsec.1"
   static_routes_only  = false
 }
 
 resource "aws_vpn_connection" "interface_1_cgw_connection" {
-  customer_gateway_id = var.interface_1_cgw_id
+  customer_gateway_id = var.cgw_interfaces["interface_1"]
   vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
   type                = "ipsec.1"
   static_routes_only  = false

@@ -1,4 +1,4 @@
-gcp_project            = "second-modem-369610"
+gcp_project            = "ardent-topic-370003"
 gcp_region             = "us-east1"
 gcp_zone               = "us-east1-b"
 cluster_name           = "nginx-cluster"

@@ -10,21 +10,21 @@ resource "google_compute_external_vpn_gateway" "external_gateway" {
 
   interface {
     id         = 0
-    ip_address = var.cgw_1_tunnel_1_external_ip
+    ip_address = var.cgw_tunnels["interface_0"]["tunnel_1"]
   }
 
   interface {
     id         = 1
-    ip_address = var.cgw_1_tunnel_2_external_ip
+    ip_address = var.cgw_tunnels["interface_0"]["tunnel_2"]
   }
 
   interface {
     id         = 2
-    ip_address = var.cgw_2_tunnel_1_external_ip
+    ip_address = var.cgw_tunnels["interface_1"]["tunnel_1"]
   }
 
   interface {
     id         = 3
-    ip_address = var.cgw_2_tunnel_2_external_ip
+    ip_address = var.cgw_tunnels["interface_1"]["tunnel_2"]
   }
 }

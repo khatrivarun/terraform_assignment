@@ -7,10 +7,6 @@ variable "amz_asn" {
   default = "65001"
 }
 
-variable "interface_0_cgw_id" {
-  type = string
-}
-
-variable "interface_1_cgw_id" {
-  type = string
+variable "cgw_interfaces" {
+  type = map(string)
 }
